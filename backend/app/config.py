@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     chunk_overlap_chars: int = 200
     retrieval_top_k: int = 5
 
+    openai_realtime_model: str = "gpt-realtime-2.1"
+    browser_call_sample_rate: int = 24000
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 

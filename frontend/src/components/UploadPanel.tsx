@@ -1,7 +1,13 @@
 import { useRef, useState } from "react";
 import { uploadDocument } from "../api";
 
-export default function UploadPanel({ onUploaded }: { onUploaded: () => void }) {
+export default function UploadPanel({
+  businessId,
+  onUploaded,
+}: {
+  businessId: string;
+  onUploaded: () => void;
+}) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -12,7 +18,7 @@ export default function UploadPanel({ onUploaded }: { onUploaded: () => void }) 
     setUploading(true);
     setError(null);
     try {
-      await uploadDocument(file);
+      await uploadDocument(businessId, file);
       onUploaded();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");

@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/api.ts","./src/main.tsx","./src/vite-env.d.ts","./src/components/businessselector.tsx","./src/components/businesssettings.tsx","./src/components/chatpanel.tsx","./src/components/documentlist.tsx","./src/components/qapairlist.tsx","./src/components/testcallpanel.tsx","./src/components/uploadpanel.tsx"],"version":"5.9.3"}

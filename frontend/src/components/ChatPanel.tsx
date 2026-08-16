@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { chatWithDocument, SourceChunk } from "../api";
+import { chatWithBusiness, SourceChunk, SourceQAPair } from "../api";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
-  sources?: SourceChunk[];
+  qaSources?: SourceQAPair[];
+  chunkSources?: SourceChunk[];
 }
 
-export default function ChatPanel({ documentId }: { documentId: string }) {
+export default function ChatPanel({ businessId }: { businessId: string }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,8 +22,11 @@ export default function ChatPanel({ documentId }: { documentId: string }) {
     setLoading(true);
 
     try {
-      const res = await chatWithDocument(documentId, question);
-      setMessages((prev) => [...prev, { role: "assistant", content: res.answer, sources: res.sources }]);
+      const res = await chatWithBusiness(businessId, question);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: res.answer, qaSources: res.qa_sources, chunkSources: res.chunk_sources },
+      ]);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Something went wrong";
       setMessages((prev) => [...prev, { role: "assistant", content: `Error: ${message}` }]);
@@ -37,9 +41,12 @@ export default function ChatPanel({ documentId }: { documentId: string }) {
         {messages.map((m, i) => (
           <div key={i} className={`message ${m.role}`}>
             <div>{m.content}</div>
-            {m.sources && m.sources.length > 0 && (
+            {((m.qaSources && m.qaSources.length > 0) || (m.chunkSources && m.chunkSources.length > 0)) && (
               <div className="sources">
-                Sources: chunks {m.sources.map((s) => s.chunk_index).join(", ")}
+                {m.qaSources && m.qaSources.length > 0 && <div>Q&A: {m.qaSources.map((s) => s.question).join(", ")}</div>}
+                {m.chunkSources && m.chunkSources.length > 0 && (
+                  <div>Document chunks: {m.chunkSources.map((s) => s.chunk_index).join(", ")}</div>
+                )}
               </div>
             )}
           </div>
@@ -51,7 +58,7 @@ export default function ChatPanel({ documentId }: { documentId: string }) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSend()}
-          placeholder="Ask a question about this document…"
+          placeholder="Ask this business a question…"
           disabled={loading}
         />
         <button onClick={handleSend} disabled={loading || !input.trim()}>
