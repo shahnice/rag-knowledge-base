@@ -25,7 +25,7 @@ def handle_openai_auth_error(request: Request, exc: AuthenticationError):
 
 @app.exception_handler(APIError)
 def handle_openai_api_error(request: Request, exc: APIError):
-    return JSONResponse(status_code=502, content={"detail": f"OpenAI API error: {exc.message}"})
+    return JSONResponse(status_code=502, content={"detail": "OpenAI API error"})
 
 app.include_router(businesses.router)
 app.include_router(documents.router)
