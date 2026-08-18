@@ -1,5 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from openai import APIError, AuthenticationError
 
 from app.db import Base, engine
 from app.routers import browser_call, businesses, calls, chat, documents, qa_pairs, realtime_key
@@ -14,6 +16,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(AuthenticationError)
+def handle_openai_auth_error(request: Request, exc: AuthenticationError):
+    return JSONResponse(status_code=401, content={"detail": "Invalid OpenAI API key"})
+
+
+@app.exception_handler(APIError)
+def handle_openai_api_error(request: Request, exc: APIError):
+    return JSONResponse(status_code=502, content={"detail": f"OpenAI API error: {exc.message}"})
 
 app.include_router(businesses.router)
 app.include_router(documents.router)
