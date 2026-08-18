@@ -56,6 +56,7 @@ class SourceQAPair(BaseModel):
 
 class ChatRequest(BaseModel):
     question: str
+    openai_api_key: str
 
 
 class ChatResponse(BaseModel):
@@ -67,11 +68,13 @@ class ChatResponse(BaseModel):
 class QAPairCreate(BaseModel):
     question: str
     answer: str
+    openai_api_key: str
 
 
 class QAPairUpdate(BaseModel):
     question: str | None = None
     answer: str | None = None
+    openai_api_key: str
 
 
 class QAPairOut(BaseModel):

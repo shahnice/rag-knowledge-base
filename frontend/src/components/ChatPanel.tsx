@@ -8,21 +8,21 @@ interface Message {
   chunkSources?: SourceChunk[];
 }
 
-export default function ChatPanel({ businessId }: { businessId: string }) {
+export default function ChatPanel({ businessId, apiKey }: { businessId: string; apiKey: string }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSend() {
     const question = input.trim();
-    if (!question || loading) return;
+    if (!question || loading || !apiKey.trim()) return;
 
     setMessages((prev) => [...prev, { role: "user", content: question }]);
     setInput("");
     setLoading(true);
 
     try {
-      const res = await chatWithBusiness(businessId, question);
+      const res = await chatWithBusiness(businessId, question, apiKey);
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: res.answer, qaSources: res.qa_sources, chunkSources: res.chunk_sources },
@@ -61,10 +61,11 @@ export default function ChatPanel({ businessId }: { businessId: string }) {
           placeholder="Ask this business a question…"
           disabled={loading}
         />
-        <button onClick={handleSend} disabled={loading || !input.trim()}>
+        <button onClick={handleSend} disabled={loading || !input.trim() || !apiKey.trim()}>
           Send
         </button>
       </div>
+      {!apiKey.trim() && <p style={{ color: "#888", fontSize: 14 }}>Enter your OpenAI API key above to chat.</p>}
     </>
   );
 }

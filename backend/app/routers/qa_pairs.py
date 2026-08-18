@@ -18,8 +18,8 @@ def _get_business_or_404(db: Session, business_id: uuid.UUID) -> Business:
     return business
 
 
-def _embed_qa(question: str, answer: str) -> list[float]:
-    return embed_text(f"Question: {question}\nAnswer: {answer}")
+def _embed_qa(question: str, answer: str, api_key: str) -> list[float]:
+    return embed_text(f"Question: {question}\nAnswer: {answer}", api_key)
 
 
 @router.get("", response_model=list[QAPairOut])
@@ -40,7 +40,7 @@ def create_qa_pair(business_id: uuid.UUID, request: QAPairCreate, db: Session = 
         business_id=business_id,
         question=request.question,
         answer=request.answer,
-        embedding=_embed_qa(request.question, request.answer),
+        embedding=_embed_qa(request.question, request.answer, request.openai_api_key),
     )
     db.add(qa_pair)
     db.commit()
@@ -56,11 +56,11 @@ def update_qa_pair(
     if not qa_pair or qa_pair.business_id != business_id:
         raise HTTPException(status_code=404, detail="Q&A pair not found")
 
-    updates = request.model_dump(exclude_none=True)
+    updates = request.model_dump(exclude={"openai_api_key"}, exclude_none=True)
     for field, value in updates.items():
         setattr(qa_pair, field, value)
     if "question" in updates or "answer" in updates:
-        qa_pair.embedding = _embed_qa(qa_pair.question, qa_pair.answer)
+        qa_pair.embedding = _embed_qa(qa_pair.question, qa_pair.answer, request.openai_api_key)
 
     db.commit()
     db.refresh(qa_pair)

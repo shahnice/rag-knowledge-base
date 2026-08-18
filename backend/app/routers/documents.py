@@ -1,7 +1,7 @@
 import logging
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from app.db import get_db
@@ -34,7 +34,12 @@ def list_documents(business_id: uuid.UUID, db: Session = Depends(get_db)):
 
 
 @router.post("", response_model=DocumentOut)
-async def upload_document(business_id: uuid.UUID, file: UploadFile, db: Session = Depends(get_db)):
+async def upload_document(
+    business_id: uuid.UUID,
+    file: UploadFile,
+    openai_api_key: str = Form(...),
+    db: Session = Depends(get_db),
+):
     _get_business_or_404(db, business_id)
     if file.content_type != "application/pdf":
         raise HTTPException(status_code=400, detail="Only PDF files are supported")
@@ -52,7 +57,7 @@ async def upload_document(business_id: uuid.UUID, file: UploadFile, db: Session 
         if not pieces:
             raise ValueError("No extractable text found in PDF")
 
-        vectors = embed_texts(pieces)
+        vectors = embed_texts(pieces, openai_api_key)
         for index, (content, vector) in enumerate(zip(pieces, vectors)):
             db.add(Chunk(document_id=document.id, chunk_index=index, content=content, embedding=vector))
 

@@ -33,9 +33,9 @@ TOOL_DEFINITIONS = [
 ]
 
 
-def execute_tool(db: Session, business_id: uuid.UUID, name: str, arguments: dict) -> str:
+def execute_tool(db: Session, business_id: uuid.UUID, name: str, arguments: dict, api_key: str) -> str:
     if name == "lookup_knowledge":
-        return lookup_knowledge_tool_result(db, business_id, arguments.get("query", ""))
+        return lookup_knowledge_tool_result(db, business_id, arguments.get("query", ""), api_key)
     if name == "end_call":
         return "ok"
     return f"Unknown tool: {name}"

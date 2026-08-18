@@ -118,9 +118,10 @@ export function listDocuments(businessId: string): Promise<DocumentOut[]> {
   return request(`/businesses/${businessId}/documents`);
 }
 
-export function uploadDocument(businessId: string, file: File): Promise<DocumentOut> {
+export function uploadDocument(businessId: string, file: File, openaiApiKey: string): Promise<DocumentOut> {
   const formData = new FormData();
   formData.append("file", file);
+  formData.append("openai_api_key", openaiApiKey);
   return request(`/businesses/${businessId}/documents`, { method: "POST", body: formData });
 }
 
@@ -132,11 +133,16 @@ export function listQAPairs(businessId: string): Promise<QAPairOut[]> {
   return request(`/businesses/${businessId}/qa-pairs`);
 }
 
-export function createQAPair(businessId: string, question: string, answer: string): Promise<QAPairOut> {
+export function createQAPair(
+  businessId: string,
+  question: string,
+  answer: string,
+  openaiApiKey: string
+): Promise<QAPairOut> {
   return request(`/businesses/${businessId}/qa-pairs`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question, answer }),
+    body: JSON.stringify({ question, answer, openai_api_key: openaiApiKey }),
   });
 }
 
@@ -144,11 +150,15 @@ export function deleteQAPair(businessId: string, qaId: string): Promise<void> {
   return request(`/businesses/${businessId}/qa-pairs/${qaId}`, { method: "DELETE" });
 }
 
-export function chatWithBusiness(businessId: string, question: string): Promise<ChatResponse> {
+export function chatWithBusiness(
+  businessId: string,
+  question: string,
+  openaiApiKey: string
+): Promise<ChatResponse> {
   return request(`/businesses/${businessId}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question }),
+    body: JSON.stringify({ question, openai_api_key: openaiApiKey }),
   });
 }
 

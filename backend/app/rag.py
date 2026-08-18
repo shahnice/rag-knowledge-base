@@ -8,8 +8,6 @@ from app.config import settings
 from app.embeddings import embed_text
 from app.models import Chunk, Document, QAPair
 
-client = OpenAI(api_key=settings.openai_api_key)
-
 SYSTEM_PROMPT = (
     "You are a helpful assistant answering questions on behalf of a business. "
     "Only use the provided context (Q&A pairs and document excerpts) to answer. "
@@ -17,8 +15,8 @@ SYSTEM_PROMPT = (
 )
 
 
-def retrieve_relevant_chunks(db: Session, business_id: uuid.UUID, question: str) -> list[Chunk]:
-    query_embedding = embed_text(question)
+def retrieve_relevant_chunks(db: Session, business_id: uuid.UUID, question: str, api_key: str) -> list[Chunk]:
+    query_embedding = embed_text(question, api_key)
     stmt = (
         select(Chunk)
         .join(Document, Chunk.document_id == Document.id)
@@ -29,8 +27,8 @@ def retrieve_relevant_chunks(db: Session, business_id: uuid.UUID, question: str)
     return list(db.execute(stmt).scalars().all())
 
 
-def retrieve_relevant_qa_pairs(db: Session, business_id: uuid.UUID, question: str) -> list[QAPair]:
-    query_embedding = embed_text(question)
+def retrieve_relevant_qa_pairs(db: Session, business_id: uuid.UUID, question: str, api_key: str) -> list[QAPair]:
+    query_embedding = embed_text(question, api_key)
     stmt = (
         select(QAPair)
         .where(QAPair.business_id == business_id)
@@ -41,10 +39,10 @@ def retrieve_relevant_qa_pairs(db: Session, business_id: uuid.UUID, question: st
 
 
 def build_knowledge_context(
-    db: Session, business_id: uuid.UUID, question: str
+    db: Session, business_id: uuid.UUID, question: str, api_key: str
 ) -> tuple[str, list[QAPair], list[Chunk]]:
-    qa_pairs = retrieve_relevant_qa_pairs(db, business_id, question)
-    chunks = retrieve_relevant_chunks(db, business_id, question)
+    qa_pairs = retrieve_relevant_qa_pairs(db, business_id, question, api_key)
+    chunks = retrieve_relevant_chunks(db, business_id, question, api_key)
 
     sections = []
     if qa_pairs:
@@ -59,11 +57,12 @@ def build_knowledge_context(
 
 
 def answer_question(
-    db: Session, business_id: uuid.UUID, question: str
+    db: Session, business_id: uuid.UUID, question: str, api_key: str
 ) -> tuple[str, list[QAPair], list[Chunk]]:
-    context, qa_pairs, chunks = build_knowledge_context(db, business_id, question)
+    context, qa_pairs, chunks = build_knowledge_context(db, business_id, question, api_key)
     user_message = f"Context:\n{context}\n\nQuestion: {question}"
 
+    client = OpenAI(api_key=api_key)
     completion = client.chat.completions.create(
         model=settings.chat_model,
         messages=[
@@ -75,8 +74,8 @@ def answer_question(
     return answer, qa_pairs, chunks
 
 
-def lookup_knowledge_tool_result(db: Session, business_id: uuid.UUID, query: str) -> str:
-    context, _, _ = build_knowledge_context(db, business_id, query)
+def lookup_knowledge_tool_result(db: Session, business_id: uuid.UUID, query: str, api_key: str) -> str:
+    context, _, _ = build_knowledge_context(db, business_id, query, api_key)
     if not context:
         return "No relevant information found in this business's knowledge base."
     return context[:4000]
