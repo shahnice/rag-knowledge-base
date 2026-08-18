@@ -7,10 +7,12 @@ import DocumentList from "./components/DocumentList";
 import QAPairList from "./components/QAPairList";
 import TestCallPanel from "./components/TestCallPanel";
 import UploadPanel from "./components/UploadPanel";
+import { useApiKey } from "./useApiKey";
 
 type Tab = "knowledge" | "voice" | "settings";
 
 export default function App() {
+  const { apiKey, setApiKey } = useApiKey();
   const [businesses, setBusinesses] = useState<BusinessOut[]>([]);
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(null);
   const [documents, setDocuments] = useState<DocumentOut[]>([]);
@@ -58,6 +60,20 @@ export default function App() {
           }}
         />
 
+        <label style={{ display: "block", margin: "12px 0" }}>
+          Your OpenAI API key
+          <input
+            type="password"
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+            placeholder="sk-..."
+            style={{ width: "100%", padding: 8, borderRadius: 8, border: "1px solid #ccc", marginTop: 4 }}
+          />
+        </label>
+        <p style={{ color: "#888", fontSize: 12, marginTop: -8, marginBottom: 12 }}>
+          Used only for this session, never stored on our servers.
+        </p>
+
         {selectedBusiness && (
           <>
             <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
@@ -86,6 +102,7 @@ export default function App() {
                 <h2>Documents</h2>
                 <UploadPanel
                   businessId={selectedBusiness.id}
+                  apiKey={apiKey}
                   onUploaded={() => refreshKnowledge(selectedBusiness.id)}
                 />
                 <DocumentList documents={documents} selectedId={selectedDocId} onSelect={setSelectedDocId} />
@@ -103,7 +120,7 @@ export default function App() {
         )}
 
         {selectedBusiness && tab === "voice" && (
-          <TestCallPanel key={selectedBusiness.id} business={selectedBusiness} />
+          <TestCallPanel key={selectedBusiness.id} business={selectedBusiness} apiKey={apiKey} />
         )}
 
         {selectedBusiness && tab === "knowledge" && (
@@ -111,11 +128,12 @@ export default function App() {
             <QAPairList
               businessId={selectedBusiness.id}
               qaPairs={qaPairs}
+              apiKey={apiKey}
               onChanged={() => refreshKnowledge(selectedBusiness.id)}
             />
             <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 300 }}>
               <h3>Test chat</h3>
-              <ChatPanel key={selectedBusiness.id} businessId={selectedBusiness.id} />
+              <ChatPanel key={selectedBusiness.id} businessId={selectedBusiness.id} apiKey={apiKey} />
             </div>
           </div>
         )}

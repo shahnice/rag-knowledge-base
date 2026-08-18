@@ -3,9 +3,11 @@ import { uploadDocument } from "../api";
 
 export default function UploadPanel({
   businessId,
+  apiKey,
   onUploaded,
 }: {
   businessId: string;
+  apiKey: string;
   onUploaded: () => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -18,7 +20,7 @@ export default function UploadPanel({
     setUploading(true);
     setError(null);
     try {
-      await uploadDocument(businessId, file);
+      await uploadDocument(businessId, file, apiKey);
       onUploaded();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
@@ -35,8 +37,9 @@ export default function UploadPanel({
         type="file"
         accept="application/pdf"
         onChange={handleChange}
-        disabled={uploading}
+        disabled={uploading || !apiKey.trim()}
       />
+      {!apiKey.trim() && <p style={{ color: "#888", fontSize: 14 }}>Enter your OpenAI API key above to upload.</p>}
       {uploading && <p>Uploading & indexing…</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
     </div>

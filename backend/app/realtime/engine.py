@@ -222,7 +222,9 @@ class CallEngine:
 
         append_turn(self.db, self.call.id, "tool", f"{name}({arguments})")
 
-        result = await asyncio.to_thread(execute_tool, self.db, self.business.id, name, arguments)
+        result = await asyncio.to_thread(
+            execute_tool, self.db, self.business.id, name, arguments, self.openai_api_key
+        )
 
         await self._send(
             {

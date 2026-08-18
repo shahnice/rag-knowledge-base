@@ -4,10 +4,12 @@ import { createQAPair, deleteQAPair, QAPairOut } from "../api";
 export default function QAPairList({
   businessId,
   qaPairs,
+  apiKey,
   onChanged,
 }: {
   businessId: string;
   qaPairs: QAPairOut[];
+  apiKey: string;
   onChanged: () => void;
 }) {
   const [question, setQuestion] = useState("");
@@ -16,11 +18,11 @@ export default function QAPairList({
   const [error, setError] = useState<string | null>(null);
 
   async function handleAdd() {
-    if (!question.trim() || !answer.trim()) return;
+    if (!question.trim() || !answer.trim() || !apiKey.trim()) return;
     setSaving(true);
     setError(null);
     try {
-      await createQAPair(businessId, question.trim(), answer.trim());
+      await createQAPair(businessId, question.trim(), answer.trim(), apiKey);
       setQuestion("");
       setAnswer("");
       onChanged();
@@ -66,7 +68,7 @@ export default function QAPairList({
           Answer
           <textarea value={answer} onChange={(e) => setAnswer(e.target.value)} rows={2} style={fieldStyle} />
         </label>
-        <button onClick={handleAdd} disabled={saving}>
+        <button onClick={handleAdd} disabled={saving || !apiKey.trim()}>
           {saving ? "Adding…" : "Add Q&A pair"}
         </button>
         {error && <p style={{ color: "red" }}>{error}</p>}

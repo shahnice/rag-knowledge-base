@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    openai_api_key: str
+    openai_api_key: str | None = None
     database_url: str = "postgresql+psycopg://rag:rag@localhost:5432/rag"
 
     embedding_model: str = "text-embedding-3-small"

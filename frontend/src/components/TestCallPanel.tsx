@@ -70,8 +70,7 @@ function clearPlayback(audioContext: AudioContext, state: PlaybackState) {
   state.nextPlayTime = audioContext.currentTime;
 }
 
-export default function TestCallPanel({ business }: { business: BusinessOut }) {
-  const [apiKey, setApiKey] = useState(() => sessionStorage.getItem("openai_api_key") || "");
+export default function TestCallPanel({ business, apiKey }: { business: BusinessOut; apiKey: string }) {
   const [keyStatus, setKeyStatus] = useState<KeyStatus>("unknown");
   const [keyDetail, setKeyDetail] = useState<string | null>(null);
   const [status, setStatus] = useState<CallStatus>("idle");
@@ -87,7 +86,6 @@ export default function TestCallPanel({ business }: { business: BusinessOut }) {
   const playbackStateRef = useRef<PlaybackState>({ nextPlayTime: 0, activeSources: [] });
 
   useEffect(() => {
-    sessionStorage.setItem("openai_api_key", apiKey);
     setKeyStatus("unknown");
   }, [apiKey]);
 
@@ -217,7 +215,6 @@ export default function TestCallPanel({ business }: { business: BusinessOut }) {
     cleanup();
   }
 
-  const fieldStyle = { width: "100%", padding: 8, borderRadius: 8, border: "1px solid #ccc", marginTop: 4 };
   const mailto = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(
     `Set up AI receptionist for ${business.name} on our own server`
   )}`;
@@ -226,22 +223,11 @@ export default function TestCallPanel({ business }: { business: BusinessOut }) {
     <div style={{ maxWidth: 560 }}>
       <h3>Voice demo</h3>
       <p style={{ color: "#666", fontSize: 14 }}>
-        Try a live voice call with this business's AI receptionist right in your browser. Bring your own
-        OpenAI API key — it's used only for this test call and is stored only in this browser tab, never on
-        our servers.
+        Try a live voice call with this business's AI receptionist right in your browser. Uses the OpenAI
+        API key entered above — it's used only for this test call and is stored only in this browser tab,
+        never on our servers.
       </p>
 
-      <label style={{ display: "block", marginBottom: 8 }}>
-        Your OpenAI API key
-        <input
-          type="password"
-          value={apiKey}
-          onChange={(e) => setApiKey(e.target.value)}
-          placeholder="sk-..."
-          style={fieldStyle}
-          disabled={status === "connecting" || status === "active"}
-        />
-      </label>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
         <button onClick={handleValidateKey} disabled={!apiKey.trim() || keyStatus === "checking"}>
           {keyStatus === "checking" ? "Checking…" : "Validate key"}
